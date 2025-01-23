@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'java-library'
+}
+
+version = "${version}"
+group = 'mod.maxbogomol.sinta'
+archivesBaseName = 'sinta'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+
+}
+
+jar {
+    manifest {
+        attributes([
+                "Specification-Title": "sinta",
+                "Specification-Vendor": "MaxBogomol",
+                "Specification-Version": "1",
+                "Implementation-Title": project.name,
+                "Implementation-Version": "${version}",
+                "Implementation-Vendor" :"MaxBogomol",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+jar.finalizedBy('reobfJar')
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
