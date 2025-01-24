@@ -91,7 +91,7 @@ public class Scanner {
                 }
             }
             case '\n' -> newLine();
-            case ' ' -> {}
+            case '\r', '\t', ' ' -> {}
             case '"' -> string();
             default -> {
                 if (isDigit(c)) {

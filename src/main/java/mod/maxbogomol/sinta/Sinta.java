@@ -123,20 +123,19 @@ public class Sinta {
         return !string.contains("false");
     }
 
+    private String getStringArg(String string) {
+        int i = string.indexOf('"');
+        string = string.substring(i + 1, string.length() - 1);
+        return string;
+    }
+
     private void setArgs(String[] args) {
         for (String string : args) {
-            if (string.contains("-cscanner=") || string.contains("-cscan=")) {
-                executeOption.setCancelableScanner(getBooleanArg(string));
-            }
-            if (string.contains("-cparser=") || string.contains("-cpars=")) {
-                executeOption.setCancelableParser(getBooleanArg(string));
-            }
-            if (string.contains("-showtokens=") || string.contains("-stokens=")) {
-                executeOption.setShowTokens(getBooleanArg(string));
-            }
-            if (string.contains("-showstatements=") || string.contains("-sstatements=")) {
-                executeOption.setShowStatements(getBooleanArg(string));
-            }
+            if (string.contains("-cscanner=") || string.contains("-cscan=")) executeOption.setCancelableScanner(getBooleanArg(string));
+            if (string.contains("-cparser=") || string.contains("-cpars=")) executeOption.setCancelableParser(getBooleanArg(string));
+            if (string.contains("-showtokens=") || string.contains("-stokens=")) executeOption.setShowTokens(getBooleanArg(string));
+            if (string.contains("-showstatements=") || string.contains("-sstatements=")) executeOption.setShowStatements(getBooleanArg(string));
+            if (string.contains("-file=")) executeOption.setFilePath(getStringArg(string));
         }
     }
 
