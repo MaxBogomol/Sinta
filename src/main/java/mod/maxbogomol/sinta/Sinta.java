@@ -74,7 +74,7 @@ public class Sinta {
         InputStreamReader input = new InputStreamReader(System.in, StandardCharsets.UTF_8);
         BufferedReader reader = new BufferedReader(input);
 
-        for(;;) {
+        while (true) {
             this.hadError = false;
             System.out.print("> ");
             String line = reader.readLine();
