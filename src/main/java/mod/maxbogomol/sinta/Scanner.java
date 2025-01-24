@@ -10,12 +10,14 @@ import java.util.List;
 import java.util.Map;
 
 public class Scanner {
+    private final Sinta sinta;
     private final String source;
     private final List<Token> tokens = new ArrayList<>();
 
     private int start = 0;
     private int current = 0;
     private int line = 1;
+    private int column = 0;
 
     private static final Map<String, TokenType> keywords;
     private static final Map<String, List<TokenType>> multiKeywords;
@@ -38,7 +40,8 @@ public class Scanner {
         multiKeywords.put("elif", elif);
     }
 
-    public Scanner(String source) {
+    public Scanner(Sinta sinta, String source) {
+        this.sinta = sinta;
         this.source = source;
     }
 
@@ -46,6 +49,7 @@ public class Scanner {
         while (!isAtEnd()) {
             start = current;
             scanToken();
+            if (sinta.hadError) break;
         }
         tokens.add(new Token(TokenTypes.EOF, "", null, line));
         return tokens;
@@ -80,8 +84,8 @@ public class Scanner {
                     addToken(TokenTypes.SLASH);
                 }
             }
-            case '\n' -> line++;
-            //case ' ' -> {}
+            case '\n' -> newLine();
+            case ' ' -> {}
             case '"' -> string();
             default -> {
                 if (isDigit(c)) {
@@ -89,7 +93,10 @@ public class Scanner {
                 } else if (isAlpha(c)) {
                     identifier();
                 } else {
-                    //error
+                    sinta.getErrorOption().error(line, column, "Unexpected character " + c);
+                    if (sinta.getErrorOption().cancelable()) {
+                        sinta.hadError = true;
+                    }
                 }
             }
         }
@@ -100,8 +107,18 @@ public class Scanner {
     }
 
     private char advance() {
+        newColumn();
         current++;
         return source.charAt(current - 1);
+    }
+
+    private void newLine() {
+        line++;
+        column = 0;
+    }
+
+    private void newColumn() {
+        column++;
     }
 
     private void addToken(TokenType type) {
@@ -152,13 +169,16 @@ public class Scanner {
     private void string() {
         while (peek() != '"' && !isAtEnd()) {
             if (peek() == '\n') {
-                line++;
+                newLine();
             }
             advance();
         }
 
         if (isAtEnd()) {
-            //error
+            sinta.getErrorOption().error(line, column, "Unterminated string " + source.substring(start + 1, current));
+            if (sinta.getErrorOption().cancelable()) {
+                sinta.hadError = true;
+            }
             return;
         }
 

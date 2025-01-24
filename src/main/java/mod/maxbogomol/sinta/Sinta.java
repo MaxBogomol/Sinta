@@ -1,5 +1,7 @@
 package mod.maxbogomol.sinta;
 
+import mod.maxbogomol.sinta.option.ErrorOption;
+import mod.maxbogomol.sinta.option.OutputOption;
 import mod.maxbogomol.sinta.token.Token;
 
 import java.io.BufferedReader;
@@ -13,6 +15,36 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Sinta {
+    public static final Sinta INSTANCE = new Sinta();
+
+    private OutputOption outputOption;
+    private ErrorOption errorOption;
+
+    public boolean hadError = false;
+
+    public Sinta() {
+        this.setOutputOption(new OutputOption());
+        this.setErrorOption(new ErrorOption());
+    }
+
+    public Sinta setOutputOption(OutputOption outputOption) {
+        this.outputOption = outputOption;
+        return this;
+    }
+
+    public Sinta setErrorOption(ErrorOption errorOption) {
+        this.errorOption = errorOption;
+        return this;
+    }
+
+    public OutputOption getOutputOption() {
+        return outputOption;
+    }
+
+    public ErrorOption getErrorOption() {
+        return errorOption;
+    }
+
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
 
@@ -33,6 +65,7 @@ public class Sinta {
         BufferedReader reader = new BufferedReader(input);
 
         for(;;) {
+            INSTANCE.hadError = false;
             System.out.print("> ");
             String line = reader.readLine();
             if (line.isEmpty()) break;
@@ -42,7 +75,7 @@ public class Sinta {
 
     public static void run(String source) {
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-        Scanner scanner = new Scanner(source);
+        Scanner scanner = new Scanner(INSTANCE, source);
         List<Token> tokens = scanner.scanTokens();
         out.println(tokens);
     }
