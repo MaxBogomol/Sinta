@@ -94,7 +94,7 @@ public class Scanner {
                     identifier();
                 } else {
                     sinta.getErrorOption().error(line, column, "Unexpected character " + c);
-                    if (sinta.getErrorOption().cancelable()) {
+                    if (sinta.getErrorOption().cancelableScanner()) {
                         sinta.hadError = true;
                     }
                 }
@@ -176,7 +176,7 @@ public class Scanner {
 
         if (isAtEnd()) {
             sinta.getErrorOption().error(line, column, "Unterminated string " + source.substring(start + 1, current));
-            if (sinta.getErrorOption().cancelable()) {
+            if (sinta.getErrorOption().cancelableScanner()) {
                 sinta.hadError = true;
             }
             return;

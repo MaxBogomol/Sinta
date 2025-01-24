@@ -10,7 +10,11 @@ public class ErrorOption {
         System.out.println("[Line: " + line + ", Column: " + column + "] Error: " + string);
     }
 
-    public boolean cancelable() {
+    public boolean cancelableScanner() {
+        return true;
+    }
+
+    public boolean cancelableParser() {
         return true;
     }
 }

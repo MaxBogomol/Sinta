@@ -1,6 +1,7 @@
 package mod.maxbogomol.sinta;
 
 import mod.maxbogomol.sinta.option.ErrorOption;
+import mod.maxbogomol.sinta.option.InputOption;
 import mod.maxbogomol.sinta.option.OutputOption;
 import mod.maxbogomol.sinta.token.Token;
 
@@ -17,14 +18,21 @@ import java.util.List;
 public class Sinta {
     public static final Sinta INSTANCE = new Sinta();
 
+    private InputOption inputOption;
     private OutputOption outputOption;
     private ErrorOption errorOption;
 
     public boolean hadError = false;
 
     public Sinta() {
+        this.setInputOption(new InputOption());
         this.setOutputOption(new OutputOption());
         this.setErrorOption(new ErrorOption());
+    }
+
+    public Sinta setInputOption(InputOption inputOption) {
+        this.inputOption = inputOption;
+        return this;
     }
 
     public Sinta setOutputOption(OutputOption outputOption) {
@@ -37,6 +45,10 @@ public class Sinta {
         return this;
     }
 
+    public InputOption getInputOption() {
+        return inputOption;
+    }
+
     public OutputOption getOutputOption() {
         return outputOption;
     }
@@ -46,26 +58,24 @@ public class Sinta {
     }
 
     public static void main(String[] args) throws IOException {
-        if (args.length > 1) {
-
-        } else if(args.length == 1) {
-            runFile(args[0]);
+        if(args.length == 1) {
+            INSTANCE.runFile(args[0]);
         } else {
-            runLines();
+            INSTANCE.runLines();
         }
     }
 
-    private static void runFile(String path) throws IOException {
+    private void runFile(String path) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
         run(new String (bytes, Charset.defaultCharset()));
     }
 
-    public static void runLines() throws IOException {
+    public void runLines() throws IOException {
         InputStreamReader input = new InputStreamReader(System.in, StandardCharsets.UTF_8);
         BufferedReader reader = new BufferedReader(input);
 
         for(;;) {
-            INSTANCE.hadError = false;
+            this.hadError = false;
             System.out.print("> ");
             String line = reader.readLine();
             if (line.isEmpty()) break;
@@ -73,7 +83,7 @@ public class Sinta {
         }
     }
 
-    public static void run(String source) {
+    public void run(String source) {
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
         Scanner scanner = new Scanner(INSTANCE, source);
         List<Token> tokens = scanner.scanTokens();
