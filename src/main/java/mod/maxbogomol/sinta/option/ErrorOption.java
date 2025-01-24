@@ -1,5 +1,6 @@
 package mod.maxbogomol.sinta.option;
 
+import mod.maxbogomol.sinta.Sinta;
 import mod.maxbogomol.sinta.token.Token;
 
 public class ErrorOption {
@@ -8,12 +9,12 @@ public class ErrorOption {
         System.out.println("[Line: " + line + "] Error: " + string);
     }
 
-    public void error(int line, int  column, String string) {
-        System.out.println("[Line: " + line + ", Column: " + column + "] Error: " + string);
+    public void error(int line, int column, String string) {
+        Sinta.output.println("[Line: " + line + ", Column: " + column + "] Error: " + string);
     }
 
     public void error(Token token, String string) {
-        System.out.println(string);
+        error(token.getLine(), token.getColumn(), "at '" + token.getLexeme() + "'" + " " + string);
     }
 
     public boolean cancelableScanner() {
@@ -21,6 +22,6 @@ public class ErrorOption {
     }
 
     public boolean cancelableParser() {
-        return true;
+        return false;
     }
 }

@@ -18,11 +18,21 @@ import java.util.List;
 public class Sinta {
     public static final Sinta INSTANCE = new Sinta();
 
+    public static BufferedReader input;
+    public static PrintStream output;
+
     private InputOption inputOption;
     private OutputOption outputOption;
     private ErrorOption errorOption;
 
-    public boolean hadError = false;
+    private boolean hadError = false;
+    private boolean hadRuntimeError = false;
+
+    static {
+        InputStreamReader input = new InputStreamReader(System.in, StandardCharsets.UTF_8);
+        Sinta.input = new BufferedReader(input);
+        Sinta.output = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+    }
 
     public Sinta() {
         this.setInputOption(new InputOption());
@@ -57,36 +67,64 @@ public class Sinta {
         return errorOption;
     }
 
-    public static void main(String[] args) throws IOException {
-        if(args.length == 1) {
+    public void error() {
+        this.hadError = true;
+    }
+
+    public void runtimeError() {
+        this.hadRuntimeError = true;
+    }
+
+    public boolean hadError() {
+        return hadError;
+    }
+
+    public boolean hadRuntimeError() {
+        return hadRuntimeError;
+    }
+
+    public static void main(String[] args) {
+        if (args.length == 1) {
             INSTANCE.runFile(args[0]);
         } else {
             INSTANCE.runLines();
         }
     }
 
-    private void runFile(String path) throws IOException {
-        byte[] bytes = Files.readAllBytes(Paths.get(path));
-        run(new String (bytes, Charset.defaultCharset()));
+    private void runFile(String path) {
+        byte[] bytes;
+        try {
+            bytes = Files.readAllBytes(Paths.get(path));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (bytes.length > 0) run(new String (bytes, Charset.defaultCharset()));
     }
 
-    public void runLines() throws IOException {
-        InputStreamReader input = new InputStreamReader(System.in, StandardCharsets.UTF_8);
-        BufferedReader reader = new BufferedReader(input);
-
+    public void runLines() {
         while (true) {
             this.hadError = false;
-            System.out.print("> ");
-            String line = reader.readLine();
+            output.print("> ");
+            String line;
+            try {
+                line = input.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             if (line.isEmpty()) break;
             run(line);
         }
     }
 
     public void run(String source) {
-        PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
         Scanner scanner = new Scanner(INSTANCE, source);
         List<Token> tokens = scanner.scanTokens();
-        out.println(tokens);
+        if (hadError()) return;
+        output.println("Tokens: " + tokens);
+
+        Parser parser = new Parser(INSTANCE, tokens);
+        List<Stmt> statements = parser.parse();
+        if (hadError()) return;
+        output.println("Statements: " + statements);
     }
 }

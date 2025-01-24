@@ -20,15 +20,16 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    public List<Statement> parse() {
-        List<Statement> statements = new ArrayList<>();
+    public List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
             statements.add(declaration());
+            if (sinta.hadError()) break;
         }
         return statements;
     }
 
-    private Statement declaration() {
+    private Stmt declaration() {
         try {
             return statement();
         } catch (ParseError e) {
@@ -37,141 +38,175 @@ public class Parser {
         }
     }
 
-    private Statement statement() {
+    private Stmt statement() {
         if (match(TokenTypes.IF)) return ifStatement();
-        if (match(TokenTypes.LEFT_BRACE)) return new Statement.Block(block());
+        if (match(TokenTypes.PRINT)) return printStatement();
+        if (match(TokenTypes.PRINTLN)) return printlnStatement();
+        if (match(TokenTypes.LEFT_BRACE)) return new Stmt.Block(block());
         return expressionStatement();
     }
 
-    private Statement expressionStatement() {
-        Expression expr = expression();
-        consume(TokenTypes.SEMICOLON, "Expect ';' after expression.");
-        return new Statement.Expression(expr);
+    private Stmt ifStatement() {
+        consume(TokenTypes.LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = expression();
+        consume(TokenTypes.RIGHT_PAREN, "Expect ')' after if condition,");
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+        if (match(TokenTypes.ELSE)) {
+            elseBranch = statement();
+        }
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
-    private Expression expression() {
+    private Stmt printStatement() {
+        consume(TokenTypes.LEFT_PAREN, "Expect '(' after 'print'.");
+        Expr value = expression();
+        consume(TokenTypes.RIGHT_PAREN, "Expect ')' after 'print'.");
+        consume(TokenTypes.SEMICOLON, "Expect ';' after print.");
+        return new Stmt.Print(value);
+    }
+
+    private Stmt printlnStatement() {
+        consume(TokenTypes.LEFT_PAREN, "Expect '(' after 'print'.");
+        Expr value = expression();
+        consume(TokenTypes.RIGHT_PAREN, "Expect ')' after 'print'.");
+        consume(TokenTypes.SEMICOLON, "Expect ';' after print.");
+        return new Stmt.Println(value);
+    }
+
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!check(TokenTypes.RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+        consume(TokenTypes.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(TokenTypes.SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
+    private Expr expression() {
         return assignment();
     }
 
-    private Expression assignment() {
-        Expression expr = or();
+    private Expr assignment() {
+        Expr expr = or();
+        //
+        return expr;
+    }
 
-        if (match(TokenTypes.EQUAL)) {
-            Token equals = previous();
-            Expression value = assignment();
-            error(equals, "Invalid assignment target.");
+    private Expr or() {
+        Expr expr = and();
+        while (match(TokenTypes.OR)) {
+            Token operator = previous();
+            Expr right = and();
+            expr = new Expr.Logical(expr, operator, right);
         }
         return expr;
     }
 
-    private Expression or() {
-        Expression expression = and();
-        while (match(TokenTypes.OR)) {
-            Token operator = previous();
-            Expression right = and();
-            expression = new Expression.Logical(expression, operator, right);
-        }
-        return expression;
-    }
-
-    private Expression and() {
-        Expression expression = equality();
+    private Expr and() {
+        Expr expr = equality();
         while (match(TokenTypes.AND)) {
             Token operator = previous();
-            Expression right = equality();
-            expression = new Expression.Logical(expression,operator,right);
+            Expr right = equality();
+            expr = new Expr.Logical(expr,operator,right);
         }
-        return expression;
+        return expr;
     }
 
-    private Expression equality() {
-        Expression expression = comparison();
+    private Expr equality() {
+        Expr expr = comparison();
         while (match(TokenTypes.BANG_EQUAL, TokenTypes.EQUAL_EQUAL)) {
             Token operator = previous();
-            Expression right = comparison();
-            expression = new Expression.Binary(expression, operator, right);
+            Expr right = comparison();
+            expr = new Expr.Binary(expr, operator, right);
         }
-        return expression;
+        return expr;
     }
 
-    private Expression comparison() {
-        Expression expression = addition();
+    private Expr comparison() {
+        Expr expr = addition();
         while (match(TokenTypes.GREATER, TokenTypes.GREATER_EQUAL, TokenTypes.LESS, TokenTypes.LESS_EQUAL)) {
             Token operator = previous();
-            Expression right = addition();
-            expression = new Expression.Binary(expression, operator, right);
+            Expr right = addition();
+            expr = new Expr.Binary(expr, operator, right);
         }
-        return expression;
+        return expr;
     }
 
-    private Expression addition() {
-        Expression expression = multiplication();
+    private Expr addition() {
+        Expr expr = multiplication();
         while (match(TokenTypes.MINUS, TokenTypes.PLUS)) {
             Token operator = previous();
-            Expression right = multiplication();
-            expression = new Expression.Binary(expression, operator, right);
+            Expr right = multiplication();
+            expr = new Expr.Binary(expr, operator, right);
         }
-        return expression;
+        return expr;
     }
 
-    private Expression multiplication() {
-        Expression expression = unary();
+    private Expr multiplication() {
+        Expr expr = unary();
         while (match(TokenTypes.SLASH, TokenTypes.STAR)) {
             Token operator = previous();
-            Expression right = unary();
-            expression = new Expression.Binary(expression, operator, right);
+            Expr right = unary();
+            expr = new Expr.Binary(expr, operator, right);
         }
-
-        return expression;
+        return expr;
     }
 
-    private Expression unary() {
+    private Expr unary() {
         if (match(TokenTypes.BANG, TokenTypes.MINUS)) {
             Token operator = previous();
-            Expression right = unary();
-            return new Expression.Unary(operator, right);
+            Expr right = unary();
+            return new Expr.Unary(operator, right);
         }
-
         return call();
     }
 
-    private Expression finishCall(Expression callee) {
-        List<Expression> arguments = new ArrayList<>();
+    private Expr finishCall(Expr callee) {
+        List<Expr> arguments = new ArrayList<>();
         if (!check(TokenTypes.RIGHT_PAREN)) {
             do {
-                if(arguments.size() >= 100) {
+                if (arguments.size() >= 100) {
                     error(peek(), "Cannot have more than 100 arguments.");
                 }
                 arguments.add(expression());
             } while (match(TokenTypes.COMMA));
         }
         Token paren = consume(TokenTypes.RIGHT_PAREN, "Expect ')' after arguments.");
-        return new Expression.Call(callee, paren, arguments);
+        return new Expr.Call(callee, paren, arguments);
     }
 
-    private Expression call() {
-        Expression expression = primary();
+    private Expr call() {
+        Expr expr = primary();
         while (true) {
             if (match(TokenTypes.LEFT_PAREN)) {
-                expression = finishCall(expression);
+                expr = finishCall(expr);
             } else if (match(TokenTypes.DOT)) {
                 Token name = consume(TokenTypes.IDENTIFIER, "Expect property name after '.' .");
-                expression = new Expression.Get(expression, name);
+                expr = new Expr.Get(expr, name);
             } else {
                 break;
             }
         }
-        return expression;
+        return expr;
     }
 
-    private Expression primary() {
-        if (match(TokenTypes.FALSE)) return new Expression.Literal(false);
-        if (match(TokenTypes.TRUE)) return new Expression.Literal(true);
+    private Expr primary() {
+        if (match(TokenTypes.FALSE)) return new Expr.Literal(false);
+        if (match(TokenTypes.TRUE)) return new Expr.Literal(true);
 
-        if(match(TokenTypes.LEFT_PAREN)) {
-            Expression expr = expression();
+        if (match(TokenTypes.STRING)) return new Expr.Literal(previous().getLiteral());
+
+        if (match(TokenTypes.LEFT_PAREN)) {
+            Expr expr = expression();
             consume(TokenTypes.RIGHT_PAREN, "Expect ')' after expression.");
-            return new Expression.Grouping(expr);
+            return new Expr.Grouping(expr);
         }
         throw error(peek(), "Expect expression.");
     }
@@ -181,6 +216,7 @@ public class Parser {
         while (!isAtEnd()) {
             if (previous().getType() == TokenTypes.SEMICOLON) return;
             if (peek().getType() == TokenTypes.IF) return;
+            if (peek().getType() == TokenTypes.PRINT) return;
             advance();
         }
     }
@@ -192,6 +228,7 @@ public class Parser {
 
     private ParseError error(Token token, String message) {
         sinta.getErrorOption().error(token, message);
+        if (sinta.getErrorOption().cancelableParser()) sinta.error();
         return new ParseError();
     }
 

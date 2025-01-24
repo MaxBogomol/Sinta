@@ -1,16 +1,18 @@
 package mod.maxbogomol.sinta.option;
 
+import mod.maxbogomol.sinta.Sinta;
+
 public class OutputOption {
 
     public void print(String string) {
-        System.out.print(string);
+        Sinta.output.print(string);
     }
 
     public void println(String string) {
-        System.out.println(string);
+        Sinta.output.println(string);
     }
 
     public void println() {
-        System.out.println();
+        Sinta.output.println();
     }
 }

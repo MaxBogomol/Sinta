@@ -18,6 +18,7 @@ public class Scanner {
     private int current = 0;
     private int line = 1;
     private int column = 0;
+    private int startColumn = 0;
 
     private static final Map<String, TokenType> keywords;
     private static final Map<String, List<TokenType>> multiKeywords;
@@ -32,6 +33,8 @@ public class Scanner {
         keywords.put("&&", TokenTypes.AND);
         keywords.put("or", TokenTypes.OR);
         keywords.put("||", TokenTypes.OR);
+        keywords.put("print", TokenTypes.PRINT);
+        keywords.put("println", TokenTypes.PRINTLN);
 
         multiKeywords = new HashMap<>();
         List<TokenType> elif = new ArrayList<>();
@@ -49,14 +52,15 @@ public class Scanner {
         while (!isAtEnd()) {
             start = current;
             scanToken();
-            if (sinta.hadError) break;
+            if (sinta.hadError()) break;
         }
-        tokens.add(new Token(TokenTypes.EOF, "", null, line));
+        tokens.add(new Token(TokenTypes.EOF, "", null, line, column++));
         return tokens;
     }
 
     private void scanToken() {
         char c = advance();
+        startColumn = column;
         switch (c) {
             case '(' -> addToken(TokenTypes.LEFT_PAREN);
             case ')' -> addToken(TokenTypes.RIGHT_PAREN);
@@ -64,13 +68,15 @@ public class Scanner {
             case '}' -> addToken(TokenTypes.RIGHT_BRACE);
             case '[' -> addToken(TokenTypes.LEFT_SQUARE_BRACE);
             case ']' -> addToken(TokenTypes.RIGHT_SQUARE_BRACE);
-            case ',' -> addToken(TokenTypes.COMMA);
             case '.' -> addToken(TokenTypes.DOT);
+            case ',' -> addToken(TokenTypes.COMMA);
+            case ':' -> addToken(TokenTypes.COLON);
             case ';' -> addToken(TokenTypes.SEMICOLON);
             case '+' -> addToken(TokenTypes.PLUS);
             case '-' -> addToken(TokenTypes.MINUS);
             case '*' -> addToken(TokenTypes.STAR);
             case '^' -> addToken(TokenTypes.POW);
+            case '?' -> addToken(TokenTypes.QUESTION);
             case '!' -> addToken(match('=') ? TokenTypes.BANG_EQUAL : TokenTypes.BANG);
             case '=' -> addToken(match('=') ? TokenTypes.EQUAL_EQUAL : TokenTypes.EQUAL);
             case '<' -> addToken(match('=') ? TokenTypes.LESS_EQUAL : TokenTypes.LESS);
@@ -94,9 +100,7 @@ public class Scanner {
                     identifier();
                 } else {
                     sinta.getErrorOption().error(line, column, "Unexpected character " + c);
-                    if (sinta.getErrorOption().cancelableScanner()) {
-                        sinta.hadError = true;
-                    }
+                    if (sinta.getErrorOption().cancelableScanner()) sinta.error();
                 }
             }
         }
@@ -122,12 +126,12 @@ public class Scanner {
     }
 
     private void addToken(TokenType type) {
-        addToken(type,null);
+        addToken(type, null);
     }
 
     private void addToken(TokenType type, Object literal) {
         String text = source.substring(start, current);
-        tokens.add(new Token(type, text, literal, line));
+        tokens.add(new Token(type, text, literal, line, startColumn));
     }
 
     private boolean match(char expected) {
@@ -176,9 +180,7 @@ public class Scanner {
 
         if (isAtEnd()) {
             sinta.getErrorOption().error(line, column, "Unterminated string " + source.substring(start + 1, current));
-            if (sinta.getErrorOption().cancelableScanner()) {
-                sinta.hadError = true;
-            }
+            if (sinta.getErrorOption().cancelableScanner()) sinta.error();
             return;
         }
 

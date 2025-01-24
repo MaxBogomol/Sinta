@@ -7,14 +7,16 @@ public class TokenTypes {
     public static final TokenType RIGHT_BRACE = new TokenType("right brace");
     public static final TokenType LEFT_SQUARE_BRACE = new TokenType("left square brace");
     public static final TokenType RIGHT_SQUARE_BRACE = new TokenType("right square brace");
-    public static final TokenType COMMA = new TokenType("comma");
     public static final TokenType DOT = new TokenType("dot");
+    public static final TokenType COMMA = new TokenType("comma");
+    public static final TokenType COLON = new TokenType("colon");
     public static final TokenType SEMICOLON = new TokenType("semicolon");
     public static final TokenType PLUS = new TokenType("plus");
     public static final TokenType MINUS = new TokenType("minus");
     public static final TokenType STAR = new TokenType("star");
     public static final TokenType SLASH = new TokenType("slash");
     public static final TokenType POW = new TokenType("pow");
+    public static final TokenType QUESTION = new TokenType("question");
 
     public static final TokenType BANG = new TokenType("bang");
     public static final TokenType BANG_EQUAL = new TokenType("bang equal");
@@ -37,6 +39,8 @@ public class TokenTypes {
     public static final TokenType ELSE = new TokenType("else");
     public static final TokenType AND = new TokenType("and");
     public static final TokenType OR = new TokenType("or");
+    public static final TokenType PRINT = new TokenType("print");
+    public static final TokenType PRINTLN = new TokenType("println");
 
     public static final TokenType EOF = new TokenType("eof");
 }
