@@ -228,7 +228,7 @@ public class Parser {
 
     private ParseError error(Token token, String message) {
         sinta.getErrorOption().error(token, message);
-        if (sinta.getErrorOption().cancelableParser()) sinta.error();
+        if (sinta.getExecuteOption().cancelableParser()) sinta.error();
         return new ParseError();
     }
 

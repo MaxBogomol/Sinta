@@ -16,12 +16,4 @@ public class ErrorOption {
     public void error(Token token, String string) {
         error(token.getLine(), token.getColumn(), "at '" + token.getLexeme() + "'" + " " + string);
     }
-
-    public boolean cancelableScanner() {
-        return true;
-    }
-
-    public boolean cancelableParser() {
-        return false;
-    }
 }
