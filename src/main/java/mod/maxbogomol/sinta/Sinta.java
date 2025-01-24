@@ -22,6 +22,8 @@ public class Sinta {
     public static BufferedReader input;
     public static PrintStream output;
 
+    private final Interpreter interpreter;
+
     private ExecuteOption executeOption;
     private InputOption inputOption;
     private OutputOption outputOption;
@@ -41,6 +43,7 @@ public class Sinta {
         this.setInputOption(new InputOption());
         this.setOutputOption(new OutputOption());
         this.setErrorOption(new ErrorOption());
+        interpreter = new Interpreter(this);
     }
 
     public Sinta setExecuteOption(ExecuteOption executeOption) {
@@ -95,6 +98,10 @@ public class Sinta {
         return hadRuntimeError;
     }
 
+    public Interpreter getInterpreter() {
+        return interpreter;
+    }
+
     public static void main(String[] args) {
         if (args.length == 0) {
             INSTANCE.setArgs(INSTANCE.getArgs());
@@ -112,6 +119,7 @@ public class Sinta {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        if (line == null) return getArgs("");
         return getArgs(line);
     }
 
@@ -167,6 +175,7 @@ public class Sinta {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            if (line == null) break;
             if (line.isEmpty()) break;
             run(line);
         }
@@ -182,5 +191,11 @@ public class Sinta {
         List<Stmt> statements = parser.parse();
         if (hadError()) return;
         if (executeOption.showStatements()) output.println("Statements: " + statements);
+
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
+        if (hadError()) return;
+
+        interpreter.interpret(statements);
     }
 }

@@ -77,11 +77,11 @@ public abstract class Expr {
     }
 
     public static class Grouping extends Expr {
-        public Grouping(Expr expr) {
-            this.expr = expr;
+        public Grouping(Expr expression) {
+            this.expression = expression;
         }
 
-        final Expr expr;
+        final Expr expression;
 
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitGroupingExpr(this);

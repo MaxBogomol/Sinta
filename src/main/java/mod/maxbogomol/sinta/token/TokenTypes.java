@@ -15,8 +15,10 @@ public class TokenTypes {
     public static final TokenType MINUS = new TokenType("minus");
     public static final TokenType STAR = new TokenType("star");
     public static final TokenType SLASH = new TokenType("slash");
-    public static final TokenType POW = new TokenType("pow");
+    public static final TokenType CIRCUMFLEX = new TokenType("circumflex");
     public static final TokenType QUESTION = new TokenType("question");
+    public static final TokenType TILDE = new TokenType("tilde");
+    public static final TokenType APOSTROPHE = new TokenType("apostrophe");
 
     public static final TokenType BANG = new TokenType("bang");
     public static final TokenType BANG_EQUAL = new TokenType("bang equal");
@@ -43,4 +45,6 @@ public class TokenTypes {
     public static final TokenType PRINTLN = new TokenType("println");
 
     public static final TokenType EOF = new TokenType("eof");
+
+    public static final TokenType UWU = new TokenType("uwu");
 }

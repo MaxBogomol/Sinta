@@ -28,11 +28,11 @@ public abstract class Stmt {
     }
 
     public static class Expression extends Stmt {
-        public Expression(Expr expr) {
-            this.expr = expr;
+        public Expression(Expr expression) {
+            this.expression = expression;
         }
 
-        final Expr expr;
+        final Expr expression;
 
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitExpressionStmt(this);

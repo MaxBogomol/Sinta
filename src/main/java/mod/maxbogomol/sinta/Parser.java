@@ -14,6 +14,7 @@ public class Parser {
     private static class ParseError extends RuntimeException{};
 
     private int current = 0;
+    private boolean throwError = true;
 
     public Parser(Sinta sinta, List<Token> tokens) {
         this.sinta = sinta;
@@ -68,10 +69,12 @@ public class Parser {
 
     private Stmt printlnStatement() {
         consume(TokenTypes.LEFT_PAREN, "Expect '(' after 'print'.");
+        throwError = false;
         Expr value = expression();
+        throwError = true;
         consume(TokenTypes.RIGHT_PAREN, "Expect ')' after 'print'.");
         consume(TokenTypes.SEMICOLON, "Expect ';' after print.");
-        return new Stmt.Println(value);
+        return (value == null) ? new Stmt.Println(new Expr.Literal("")) : new Stmt.Println(value);
     }
 
     private List<Stmt> block() {
@@ -208,7 +211,8 @@ public class Parser {
             consume(TokenTypes.RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
-        throw error(peek(), "Expect expression.");
+        if (throwError) throw error(peek(), "Expect expression.");
+        return null;
     }
 
     private void synchronize() {
@@ -217,6 +221,7 @@ public class Parser {
             if (previous().getType() == TokenTypes.SEMICOLON) return;
             if (peek().getType() == TokenTypes.IF) return;
             if (peek().getType() == TokenTypes.PRINT) return;
+            if (peek().getType() == TokenTypes.PRINTLN) return;
             advance();
         }
     }

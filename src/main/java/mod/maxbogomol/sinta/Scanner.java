@@ -36,6 +36,8 @@ public class Scanner {
         keywords.put("print", TokenTypes.PRINT);
         keywords.put("println", TokenTypes.PRINTLN);
 
+        keywords.put("uwu", TokenTypes.UWU);
+
         multiKeywords = new HashMap<>();
         List<TokenType> elif = new ArrayList<>();
         elif.add(TokenTypes.ELSE);
@@ -75,8 +77,10 @@ public class Scanner {
             case '+' -> addToken(TokenTypes.PLUS);
             case '-' -> addToken(TokenTypes.MINUS);
             case '*' -> addToken(TokenTypes.STAR);
-            case '^' -> addToken(TokenTypes.POW);
+            case '^' -> addToken(TokenTypes.CIRCUMFLEX);
             case '?' -> addToken(TokenTypes.QUESTION);
+            case '~' -> addToken(TokenTypes.TILDE);
+            case '`' -> addToken(TokenTypes.APOSTROPHE);
             case '!' -> addToken(match('=') ? TokenTypes.BANG_EQUAL : TokenTypes.BANG);
             case '=' -> addToken(match('=') ? TokenTypes.EQUAL_EQUAL : TokenTypes.EQUAL);
             case '<' -> addToken(match('=') ? TokenTypes.LESS_EQUAL : TokenTypes.LESS);
